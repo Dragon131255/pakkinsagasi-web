@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>パッキン探し</title>
+<link rel="icon" href="pakkinsagasi.ico">
+<style>
+  :root {
+    --inner: #1E88E5; --outer: #43A047; --width: #FB8C00; --depth: #8E24AA;
+    --ring: #E53935; --main: #1565C0; --br: #37474F;
+    --bg: #F3F6FB; --card: #fff; --text: #263238; --sub: #607D8B; --line: #CFD8DC;
+    --top: #C8E6C9; --alt: #E3F2FD; --err: #C62828;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Yu Gothic UI", "Hiragino Sans", "Noto Sans JP", sans-serif; font-size: 16px; }
+  header { background: var(--main); color: #fff; padding: 12px 16px; font-weight: bold; font-size: 18px; }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; }
+  .card { background: var(--card); border-radius: 10px; padding: 16px; margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .row label { flex: 1 1 50%; font-weight: bold; }
+  .row input, .row select { flex: 1 1 50%; min-width: 0; font-size: 16px; padding: 10px; border: 1px solid var(--line);
+    border-radius: 6px; background: #fff; color: var(--text); }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+  .actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  button { background: var(--main); color: #fff; border: 0; border-radius: 6px; padding: 12px 32px; font-size: 16px; font-weight: bold; }
+  .hint { color: var(--sub); font-size: 13px; }
+  svg { width: 100%; height: auto; display: block; }
+  #msg { white-space: pre-wrap; font-size: 14px; line-height: 1.6; }
+  #msg.error { color: var(--err); font-weight: bold; }
+  h2 { font-size: 16px; margin: 16px 0 8px; }
+  .ring { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; background: #fff; }
+  .ring.top { background: var(--top); border-color: #A5D6A7; }
+  .ring.alt { background: var(--alt); }
+  .ring .name { font-weight: bold; font-size: 17px; }
+  .ring .name small { font-weight: normal; color: var(--sub); font-size: 13px; margin-left: 8px; }
+  .ring dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 6px 0 0; font-size: 14px; }
+  .ring dt { color: var(--sub); }
+  .ring dd { margin: 0; }
+</style>
+</head>
+<body>
+<header>◎ パッキン探し ─ JIS B 2401 Oリング選定</header>
+<main>
+  <form class="card" id="form" novalidate>
+    <div class="row"><label for="inner"><span class="dot" style="background:var(--inner)"></span>d 溝の内径 [mm]</label>
+      <input id="inner" inputmode="decimal" autocomplete="off"></div>
+    <div class="row"><label for="outer"><span class="dot" style="background:var(--outer)"></span>D 溝の外径 [mm]</label>
+      <input id="outer" inputmode="decimal" autocomplete="off"></div>
+    <div class="row"><label for="width"><span class="dot" style="background:var(--width)"></span>G 溝幅 [mm]</label>
+      <input id="width" inputmode="decimal" autocomplete="off"></div>
+    <div class="row"><label for="use">用途</label>
+      <select id="use"><option value="Dynamic">運動用</option><option value="Static" selected>固定用</option></select></div>
+    <div class="row"><label for="br"><span class="dot" style="background:var(--br)"></span>バックアップリング</label>
+      <select id="br"><option value="None">なし</option><option value="One">片側</option><option value="Both">両側</option></select></div>
+    <div class="actions"><button type="submit">検索</button><span class="hint">空欄の寸法は判定に使いません</span></div>
+  </form>
+
+  <div class="card">
+    <svg viewBox="0 0 400 215" role="img" aria-label="溝の断面図">
+      <defs>
+        <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+          <rect width="6" height="6" fill="#ECEFF1"/><line x1="0" y1="0" x2="0" y2="6" stroke="#90A4AE" stroke-width="1.5"/>
+        </pattern>
+        <linearGradient id="shaft" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CFD8DC"/><stop offset="1" stop-color="#90A4AE"/></linearGradient>
+        <linearGradient id="ringg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8A80"/><stop offset="1" stop-color="#B71C1C"/></linearGradient>
+        <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker>
+      </defs>
+      <g font-size="10" font-weight="bold">
+        <text x="6" y="14" fill="#263238">溝の断面図（軸に溝を切る場合）</text>
+        <rect x="0" y="20" width="400" height="28" fill="url(#hatch)"/>
+        <line x1="0" y1="48" x2="400" y2="48" stroke="#708090"/>
+        <text x="6" y="36" fill="#455A64">相手側（穴）</text>
+        <path d="M0,70 H170 V128 H280 V70 H400 V205 H0 Z" fill="url(#shaft)" stroke="#708090"/>
+        <text x="6" y="84" fill="#37474F">軸</text>
+        <g id="brs" fill="#546E7A" stroke="#000"></g>
+        <text id="brlabel" x="283" y="96" fill="#37474F" display="none">BR</text>
+        <ellipse id="oring" cx="225" cy="88" rx="45" ry="40" fill="url(#ringg)" stroke="#7F0000" stroke-width="1.2"/>
+        <text x="108" y="62" fill="#E53935">Oリング</text>
+        <line x1="0" y1="203" x2="400" y2="203" stroke="#607D8B" stroke-dasharray="8 3 2 3"/>
+        <text x="345" y="198" fill="#607D8B" font-weight="normal">中心線</text>
+        <g stroke-dasharray="4 3" stroke="#B0BEC5">
+          <line x1="140" y1="128" x2="170" y2="128"/><line x1="170" y1="128" x2="170" y2="154"/>
+          <line x1="280" y1="128" x2="280" y2="154"/><line x1="280" y1="128" x2="330" y2="128"/>
+        </g>
+        <g stroke-width="1.6" marker-start="url(#arw)" marker-end="url(#arw)">
+          <line x1="30" y1="203" x2="30" y2="48" stroke="#43A047"/>
+          <line x1="150" y1="203" x2="150" y2="128" stroke="#1E88E5"/>
+          <line x1="170" y1="148" x2="280" y2="148" stroke="#FB8C00"/>
+          <line x1="320" y1="48" x2="320" y2="128" stroke="#8E24AA"/>
+        </g>
+        <text id="figD" x="36" y="110" fill="#43A047">D 溝の外径</text>
+        <text id="figd" x="156" y="190" fill="#1E88E5">d 溝の内径</text>
+        <text id="figG" x="190" y="170" fill="#FB8C00">G 溝幅</text>
+        <text x="326" y="116" fill="#8E24AA">H 溝深さ</text>
+        <text x="288" y="141" fill="#8E24AA" font-weight="normal">H = (D − d) / 2</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="card">
+    <div id="msg">寸法を入力して［検索］を押してください。</div>
+    <div id="results"></div>
+  </div>
+</main>
+<script src="search.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var table = null;
+
+  fetch('data/oring_jis_b2401.csv')
+    .then(function (r) { if (!r.ok) throw new Error(); return r.text(); })
+    .then(function (t) { table = Pakkin.parseTable(t); })
+    .catch(function () { showError('規格表（data/oring_jis_b2401.csv）を読み込めませんでした。'); });
+
+  // 図の数値を入力に合わせて更新
+  function updateFig() {
+    [['figD', 'D 溝の外径', 'outer'], ['figd', 'd 溝の内径', 'inner'], ['figG', 'G 溝幅', 'width']].forEach(function (a) {
+      var v = $(a[2]).value.trim();
+      $(a[0]).textContent = a[1] + (v ? ' = ' + v : '');
+    });
+    var sides = { None: [], One: ['R'], Both: ['L', 'R'] }[$('br').value];
+    var g = $('brs'); g.innerHTML = '';
+    var x1 = 180, x2 = 270, w = 16;
+    sides.forEach(function (s) {
+      var bx = s === 'L' ? 170 : 280 - w;
+      var r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      r.setAttribute('x', bx); r.setAttribute('y', 48); r.setAttribute('width', w); r.setAttribute('height', 80);
+      g.appendChild(r);
+      if (s === 'L') x1 = 170 + w + 2; else x2 = 280 - w - 2;
+    });
+    $('brlabel').setAttribute('display', sides.length ? 'inline' : 'none');
+    var o = $('oring');
+    o.setAttribute('cx', (x1 + x2) / 2); o.setAttribute('rx', (x2 - x1) / 2);
+  }
+  ['inner', 'outer', 'width'].forEach(function (id) { $(id).addEventListener('input', updateFig); });
+  $('br').addEventListener('change', updateFig);
+  updateFig();
+
+  function readNumber(id, label) {
+    var s = $(id).value.trim().replace(/[０-９．]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
+    if (s === '') return null;
+    if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) throw new Error(label + ' に数値を入力してください。');
+    return parseFloat(s);
+  }
+
+  function showError(text) { var m = $('msg'); m.className = 'error'; m.textContent = text; $('results').innerHTML = ''; }
+  // '{0:0.0#}' と同じ：小数1〜2桁
+  function fmt(v) { return v == null ? '—' : v.toFixed(2).replace(/0$/, ''); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    document.activeElement && document.activeElement.blur();
+    try {
+      if (!table) throw new Error('規格表を読み込み中です。少し待ってからもう一度押してください。');
+      var inner = readNumber('inner', '溝の内径');
+      var outer = readNumber('outer', '溝の外径');
+      var width = readNumber('width', '溝幅');
+      var res = Pakkin.findORing({ inner: inner, outer: outer, width: width, use: $('use').value, backupRing: $('br').value, table: table });
+
+      var lines = [];
+      if (res.GrooveDepth != null) lines.push('溝深さ ' + res.GrooveDepth.toFixed(2) + ' mm');
+      lines.push('判定条件：' + res.Notes.join(' / '));
+      if (res.Candidates.length === 0) {
+        lines.push('条件に合うOリングはありませんでした。');
+        lines = lines.concat(res.Reasons);
+      } else {
+        var order = inner != null ? '内径の伸びが小さい順' : outer != null ? 'つぶし率が推奨範囲の中央に近い順' : '溝充填率が上限に近い順';
+        lines.push(res.Candidates.length + ' 件見つかりました（系列ごとに最大 ' + Pakkin.MaxResults + ' 件、' + order + '）。');
+      }
+      var m = $('msg'); m.className = ''; m.textContent = lines.join('\n');
+
+      var html = '';
+      ['P', 'G'].forEach(function (s) {
+        var list = res.Candidates.filter(function (r) { return r.Series === s; });
+        if (!list.length) return;
+        html += '<h2>' + s + '系列（' + list.length + ' 件）</h2>';
+        list.forEach(function (r, i) {
+          html += '<div class="ring' + (i === 0 ? ' top' : i % 2 ? ' alt' : '') + '">'
+            + '<div class="name">' + esc(r.Name) + '<small>線径 d2 ' + r.D2.toFixed(1) + ' / 内径 d1 ' + r.D1.toFixed(1) + '</small></div><dl>'
+            + '<dt>溝内径 d</dt><dd>' + fmt(r.StdInner) + '（' + esc(r.TolInner) + '）</dd>'
+            + '<dt>溝外径 D</dt><dd>' + fmt(r.StdOuter) + '（' + esc(r.TolOuter) + '）</dd>'
+            + '<dt>溝幅 G</dt><dd>' + fmt(r.StdWidth) + '（' + esc(r.TolWidth) + '）</dd>'
+            + '</dl></div>';
+        });
+      });
+      $('results').innerHTML = html;
+      if (html) $('msg').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+      showError(err.message);
+    }
+  });
+})();
+</script>
+</body>
+</html>
