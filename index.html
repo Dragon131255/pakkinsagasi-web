@@ -44,6 +44,8 @@
   .ring dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 6px 0 0; font-size: 14px; }
   .ring dt { color: var(--sub); }
   .ring dd { margin: 0; }
+  #pkFig img { width: 100%; height: auto; display: block; margin-bottom: 12px; }
+  .figttl { font-weight: bold; font-size: 14px; margin-bottom: 6px; }
 </style>
 </head>
 <body>
@@ -65,7 +67,7 @@
     <div class="actions"><button type="submit">検索</button><span class="hint">空欄の寸法は判定に使いません</span></div>
   </form>
 
-  <div class="card">
+  <div class="card" id="figCard">
     <svg viewBox="0 0 400 215" role="img" aria-label="溝の断面図">
       <defs>
         <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
@@ -105,6 +107,13 @@
         <text x="288" y="141" fill="#8E24AA" font-weight="normal">H = (D − d) / 2</text>
       </g>
     </svg>
+    <div id="pkFig" hidden>
+      <div class="figttl">SKY 寸法指示図（ピストン用）</div>
+      <img src="images/sky-piston.png" alt="SKYパッキン 寸法指示図（ピストン用）">
+      <div class="figttl">SKY 寸法指示図（ロッド用）</div>
+      <img src="images/sky-rod.png" alt="SKYパッキン 寸法指示図（ロッド用）">
+      <div class="hint">出典：阪上製作所 SKYパッキン 製品ページ</div>
+    </div>
   </div>
 
   <div class="card">
@@ -135,6 +144,8 @@
     var pk = $('kind').value === 'packing';
     $('use').disabled = pk;
     $('figRing').textContent = pk ? 'パッキン' : 'Oリング';
+    document.querySelector('#figCard svg').style.display = pk ? 'none' : '';
+    $('pkFig').hidden = !pk;
     $('msg').className = ''; $('msg').textContent = '寸法を入力して［検索］を押してください。'; $('results').innerHTML = '';
   });
 
