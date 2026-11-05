@@ -145,7 +145,62 @@
     };
   }
 
-  var api = { parseTable: parseTable, findORing: findORing, MaxResults: MaxResults };
+  // ---- 阪上パッキン（油圧シリンダ用）：Search.ps1 の Find-Packing と同じ ----
+  var PackingDiaTol = 0.5, PackingWidthTol = 0.5;   // Config.ps1 と同じ値
+
+  function parsePackingTable(csv) {
+    var lines = csv.replace(/^﻿/, '').trim().split(/\r?\n/);
+    var head = lines.shift().split(',');
+    return lines.map(function (line) {
+      var c = line.split(','), o = {};
+      head.forEach(function (h, i) { o[h.trim()] = (c[i] || '').trim(); });
+      return { Product: o.Product, Use: o.Use, Code: o.Code, D1: +o.Inner, D2: +o.Outer, H: +o.H, GA: +o.GA, GB: +o.GB, Backup: o.Backup };
+    });
+  }
+
+  function findPacking(opt) {
+    var gi = opt.inner, go = opt.outer, gw = opt.width;
+    var hasInner = gi != null, hasOuter = go != null, hasWidth = gw != null;
+    if (!(hasInner || hasOuter || hasWidth)) throw new Error('溝の内径・外径・溝幅のどれか1つ以上を入力してください。');
+    [gi, go, gw].forEach(function (v) {
+      if (v != null && v <= 0) throw new Error('寸法には0より大きい値を入力してください。');
+    });
+    if (hasInner && hasOuter && go <= gi) throw new Error('溝の外径は内径より大きい値を入力してください。');
+    var br = opt.backupRing || 'None', withBR = br !== 'None';
+
+    var notes = [];
+    if (hasInner) notes.push('d の差 ±' + PackingDiaTol + ' mm 以内');
+    if (hasOuter) notes.push('D の差 ±' + PackingDiaTol + ' mm 以内');
+    if (hasWidth) {
+      notes.push('溝幅の差 ±' + PackingWidthTol + ' mm 以内（' + (withBR ? 'バックアップリングありの溝幅 GB' : 'バックアップリングなしの溝幅 GA') + '）');
+      if (br === 'Both') notes.push('（サイズ表に両側の溝幅はないため、バックアップリングありの溝幅で判定）');
+    }
+
+    var matched = [];
+    opt.table.forEach(function (r, i) {
+      var w = withBR ? r.GB : r.GA, dev = 0, e;
+      if (hasInner) { e = Math.abs(gi - r.D1); if (e > PackingDiaTol + 1e-9) return; dev += e; }
+      if (hasOuter) { e = Math.abs(go - r.D2); if (e > PackingDiaTol + 1e-9) return; dev += e; }
+      if (hasWidth) { e = Math.abs(gw - w); if (e > PackingWidthTol + 1e-9) return; dev += e; }
+      matched.push({ Product: r.Product, Use: r.Use, Code: r.Code, D1: r.D1, D2: r.D2, H: r.H, Width: w,
+        Backup: withBR ? r.Backup : '', Deviation: dev, Order: i });
+    });
+
+    var byDev = function (a, b) { return a.Deviation - b.Deviation || a.Order - b.Order; };
+    var groups = {}, names = [];
+    matched.forEach(function (m) { if (!groups[m.Product]) { groups[m.Product] = []; names.push(m.Product); } groups[m.Product].push(m); });
+    var tops = names.map(function (n) { return groups[n].sort(byDev).slice(0, MaxResults); });
+    tops.sort(function (a, b) { return byDev(a[0], b[0]); });
+    var candidates = [].concat.apply([], tops);
+
+    return {
+      Candidates: candidates,
+      Reasons: candidates.length ? [] : ['入力した寸法に合う阪上パッキンはありません（許容差の範囲外）。'],
+      Notes: notes
+    };
+  }
+
+  var api = { parseTable: parseTable, findORing: findORing, parsePackingTable: parsePackingTable, findPacking: findPacking, MaxResults: MaxResults };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Pakkin = api;
 })(this);

@@ -1,6 +1,6 @@
 // ホーム画面から開いたとき用。通信できるときは常に最新を取りに行き、圏外のときだけ保存した分を使う
-var CACHE = 'pakkinsagasi-v1';
-var FILES = ['./', 'index.html', 'search.js', 'data/oring_jis_b2401.csv', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+var CACHE = 'pakkinsagasi-v2';
+var FILES = ['./', 'index.html', 'search.js', 'data/oring_jis_b2401.csv', 'data/sakagami_hydraulic.csv','manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }));
