@@ -8,7 +8,7 @@
     Dynamic: { SqueezeMin: 8, SqueezeMax: 20, Series: ['P'] },
     Static: { SqueezeMin: 15, SqueezeMax: 30, Series: ['P', 'G'] }
   };
-  var FillMax = 85, StretchMin = 0, StretchMax = 5, MaxResults = 5;
+  var FillMax = 85, StretchMin = 0, StretchMax = 5, MaxResults = 2;
   var GrooveTolerance = {
     P: { 1.9: 0.05, 2.4: 0.06, 3.5: 0.08, 5.7: 0.10, 8.4: 0.10 },
     G: { 3.1: 0.10, 5.7: 0.10 }
