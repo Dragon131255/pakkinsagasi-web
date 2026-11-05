@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>パッキン探し</title>
 <link rel="icon" href="pakkinsagasi.ico">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#1565C0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="パッキン探し">
 <style>
   :root {
     --inner: #1E88E5; --outer: #43A047; --width: #FB8C00; --depth: #8E24AA;
@@ -111,6 +116,8 @@
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var table = null;
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
 
   fetch('data/oring_jis_b2401.csv')
     .then(function (r) { if (!r.ok) throw new Error(); return r.text(); })
