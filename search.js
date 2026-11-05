@@ -148,6 +148,51 @@
   // ---- 阪上パッキン（油圧シリンダ用）：Search.ps1 の Find-Packing と同じ ----
   var PackingDiaTol = 0.5, PackingWidthTol = 0.5;   // Config.ps1 と同じ値
 
+  // 溝寸法の公差（Config.ps1 の $PackingTolerance と同じ。出典：阪上製作所の寸法指示図）
+  var PackingTolerance = {
+    'GPY': { Piston: { Inner: 'h8', Outer: 'H9' }, Width: '+0.25/0' },
+    'GNY': { Rod: { Inner: 'f8', Outer: 'H8' }, Width: '+0.25/0' },
+    'RGY': { Piston: { Inner: '+0.2/0', Outer: 'H9' }, Width: '±0.2' },
+    'RNY': { Rod: { Inner: 'f8', Outer: '0/-0.2' }, Width: '±0.2' },
+    'ⓉSGY': { Piston: { Inner: '+0.2/0', Outer: 'H9' }, Width: '±0.2' },
+    'ⓉSNY': { Rod: { Inner: 'f8', Outer: '0/-0.2' }, Width: '±0.2' },
+    'SKY': { Piston: { Inner: '+0.2/0', Outer: 'H9' }, Rod: { Inner: 'f8', Outer: '0/-0.2' }, Width: '±0.2' },
+    'KY': { Piston: { Inner: 'h8', Outer: 'H9' }, Rod: { Inner: 'f8', Outer: 'H9' }, Width: '±0.2' }
+  };
+  // ISO 286（JIS B 0401）[µm]：寸法区分の上限 [mm]、IT8、IT9、f の上の寸法許容差
+  var FitSizeUpper = [3, 6, 10, 18, 30, 50, 80, 120, 180, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600];
+  var FitIT8 = [14, 18, 22, 27, 33, 39, 46, 54, 63, 72, 81, 89, 97, 110, 125, 140, 165, 195];
+  var FitIT9 = [25, 30, 36, 43, 52, 62, 74, 87, 100, 115, 130, 140, 155, 175, 200, 230, 260, 310];
+  var FitEsF = [-6, -10, -13, -16, -20, -25, -30, -36, -43, -50, -56, -62, -68, -76, -80, -86, -98, -110];
+
+  function formatPackingTol(spec, size) {
+    var um = function (v) { return v === 0 ? '0' : (v > 0 ? '+' : '-') + (Math.abs(v) / 1000).toFixed(3); };
+    var m = /^([Hhf])(8|9)$/.exec(spec);
+    if (m) {
+      var i = 0;
+      while (i < FitSizeUpper.length && size > FitSizeUpper[i]) i++;
+      if (i >= FitSizeUpper.length) return spec;
+      var it = m[2] === '8' ? FitIT8[i] : FitIT9[i], hi, lo;
+      if (m[1] === 'H') { hi = it; lo = 0; } else if (m[1] === 'h') { hi = 0; lo = -it; } else { hi = FitEsF[i]; lo = FitEsF[i] - it; }
+      return spec + ' ' + um(hi) + ' / ' + um(lo);
+    }
+    m = /^([+\-]?[\d.]+)\/([+\-]?[\d.]+)$/.exec(spec);
+    return m ? m[1] + ' / ' + m[2] : spec;
+  }
+
+  function getPackingTol(r) {
+    var t = PackingTolerance[r.Product];
+    if (!t) return { Inner: '—', Outer: '—', Width: '—' };
+    var inner = [], outer = [];
+    ['Piston', 'Rod'].forEach(function (u) {
+      if (!t[u]) return;
+      var label = r.Use === 'Both' ? { Piston: 'ピストン ', Rod: 'ロッド ' }[u] : '';
+      inner.push(label + formatPackingTol(t[u].Inner, r.D1));
+      outer.push(label + formatPackingTol(t[u].Outer, r.D2));
+    });
+    return { Inner: inner.join('／'), Outer: outer.join('／'), Width: formatPackingTol(t.Width, 0) };
+  }
+
   function parsePackingTable(csv) {
     var lines = csv.replace(/^﻿/, '').trim().split(/\r?\n/);
     var head = lines.shift().split(',');
@@ -182,7 +227,9 @@
       if (hasInner) { e = Math.abs(gi - r.D1); if (e > PackingDiaTol + 1e-9) return; dev += e; }
       if (hasOuter) { e = Math.abs(go - r.D2); if (e > PackingDiaTol + 1e-9) return; dev += e; }
       if (hasWidth) { e = Math.abs(gw - w); if (e > PackingWidthTol + 1e-9) return; dev += e; }
+      var tol = getPackingTol(r);
       matched.push({ Product: r.Product, Use: r.Use, Code: r.Code, D1: r.D1, D2: r.D2, H: r.H, Width: w,
+        TolInner: tol.Inner, TolOuter: tol.Outer, TolWidth: tol.Width,
         Backup: withBR ? r.Backup : '', Deviation: dev, Order: i });
     });
 

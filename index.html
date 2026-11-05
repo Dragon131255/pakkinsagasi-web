@@ -202,9 +202,10 @@
           }
           ph += '<div class="ring' + (idx === 0 ? ' top' : ' alt') + '">'
             + '<div class="name">' + esc(r.Code) + '<small>' + useName[r.Use] + '</small></div><dl>'
-            + '<dt>d / D</dt><dd>' + r.D1 + ' / ' + r.D2 + '</dd>'
+            + '<dt>溝内径 d</dt><dd>' + r.D1 + '（' + esc(r.TolInner) + '）</dd>'
+            + '<dt>溝外径 D</dt><dd>' + r.D2 + '（' + esc(r.TolOuter) + '）</dd>'
+            + '<dt>溝幅</dt><dd>' + r.Width + '（' + esc(r.TolWidth) + '）</dd>'
             + '<dt>H（高さ）</dt><dd>' + r.H + '</dd>'
-            + '<dt>溝幅</dt><dd>' + r.Width + '</dd>'
             + (r.Backup ? '<dt>バックアップ</dt><dd>' + esc(r.Backup) + '</dd>' : '')
             + '<dt>寸法の差</dt><dd>' + fmt(r.Deviation) + ' mm</dd>'
             + '</dl></div>';
