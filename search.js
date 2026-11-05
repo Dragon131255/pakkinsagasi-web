@@ -147,7 +147,7 @@
 
   // ---- 阪上パッキン（油圧シリンダ用）：Search.ps1 の Find-Packing と同じ ----
   var PackingDiaTol = 0.5, PackingWidthTol = 0.5;   // Config.ps1 と同じ値
-  var PackingProducts = ['SKY'];   // 検索結果に出す製品（Config.ps1 の $PackingProducts と同じ。一時的に SKY だけ）
+  var PackingProducts = ['SKY', 'KY'];   // 検索結果に出す製品（Config.ps1 の $PackingProducts と同じ。一時的に SKY・KY だけ）
 
   // 溝寸法の公差（Config.ps1 の $PackingTolerance と同じ。出典：阪上製作所の寸法指示図）
   var PackingTolerance = {
