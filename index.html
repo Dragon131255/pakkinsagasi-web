@@ -149,6 +149,7 @@
   // 製品ごとにある図（ピストン用・ロッド用）。UHP・MLP・MLR はバルカー、UPH は NOK のカタログの図
   var FIG_PRODUCTS = { SKY: ['piston', 'rod'], KY: ['piston', 'rod'], UHP: ['piston'], MLP: ['piston'], MLR: ['rod'], UPH: ['piston', 'rod'] };
   var VALQUA = ['UHP', 'MLP', 'MLR'], NOK = ['UPH'];
+  function maker(p) { return VALQUA.indexOf(p) >= 0 ? 'バルカー' : NOK.indexOf(p) >= 0 ? 'NOK' : '阪上製作所'; }
   function setPackingFig(p) {
     var uses = FIG_PRODUCTS[p];
     if (!uses) return;
@@ -251,7 +252,7 @@
             + '<dt>溝幅</dt><dd>' + r.Width + '</dd>'
             + '<dt>H（高さ）</dt><dd>' + r.H + '</dd>'
             + (r.Backup ? '<dt>バックアップ</dt><dd>' + esc(r.Backup) + '</dd>' : '')
-            + '<dt>寸法の差</dt><dd>' + fmt(r.Deviation) + ' mm</dd>'
+            + '<dt>メーカー</dt><dd>' + maker(r.Product) + '</dd>'
             + '</dl></div>';
           idx++;
         });
