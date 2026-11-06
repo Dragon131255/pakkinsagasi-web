@@ -200,7 +200,7 @@
     return lines.map(function (line) {
       var c = line.split(','), o = {};
       head.forEach(function (h, i) { o[h.trim()] = (c[i] || '').trim(); });
-      return { Product: o.Product, Use: o.Use, Code: o.Code, D1: +o.Inner, D2: +o.Outer, H: o.H, GA: +o.GA, GB: +o.GB, Backup: o.Backup };
+      return { Product: o.Product, Use: o.Use, Code: o.Code, D1: +o.Inner, D2: +o.Outer, H: o.H, GA: +o.GA, GB: +o.GB, Backup: o.Backup, DiaD1: o.D1Dia || '' };
     });
   }
 
@@ -230,7 +230,7 @@
       if (hasOuter) { e = Math.abs(go - r.D2); if (e > PackingDiaTol + 1e-9) return; dev += e; }
       if (hasWidth) { e = Math.abs(gw - w); if (e > PackingWidthTol + 1e-9) return; dev += e; }
       var tol = getPackingTol(r);
-      matched.push({ Product: r.Product, Use: r.Use, Code: r.Code, D1: r.D1, D2: r.D2, H: r.H, Width: w,
+      matched.push({ Product: r.Product, Use: r.Use, Code: r.Code, D1: r.D1, D2: r.D2, DiaD1: r.DiaD1, H: r.H, Width: w,
         TolInner: tol.Inner, TolOuter: tol.Outer, TolWidth: tol.Width,
         Backup: withBR ? r.Backup : '', Deviation: dev, Order: i });
     });

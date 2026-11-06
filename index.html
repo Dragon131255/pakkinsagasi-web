@@ -248,7 +248,7 @@
           ph += '<div class="ring pk' + (idx === 0 ? ' top' : ' alt') + '" data-product="' + esc(r.Product) + '">'
             + '<div class="name">' + esc(r.Code) + '<small>' + useName[r.Use] + '</small></div><dl>'
             + '<dt>溝内径 d</dt><dd>' + r.D1 + '</dd>'
-            + '<dt>溝外径 D</dt><dd>' + r.D2 + '</dd>'
+            + '<dt>D1</dt><dd>' + (r.DiaD1 || '—') + '</dd>'
             + '<dt>溝幅</dt><dd>' + r.Width + '</dd>'
             + '<dt>H（高さ）</dt><dd>' + r.H + '</dd>'
             + (r.Backup ? '<dt>バックアップ</dt><dd>' + esc(r.Backup) + '</dd>' : '')
