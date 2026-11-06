@@ -44,6 +44,8 @@
   .ring dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 6px 0 0; font-size: 14px; }
   .ring dt { color: var(--sub); }
   .ring dd { margin: 0; }
+  .ring dd b { font-size: 15px; }
+  .ring .tol { display: inline-block; margin-left: 8px; padding: 0 6px; border-radius: 4px; background: #FFF3E0; color: #E65100; font-size: 13px; font-weight: bold; }
   #pkFig img { width: 100%; height: auto; display: block; margin-bottom: 12px; }
   .ring.pk { cursor: pointer; }
   .ring.sel { outline: 3px solid var(--main); }
@@ -150,6 +152,11 @@
   var FIG_PRODUCTS = { SKY: ['piston', 'rod'], KY: ['piston', 'rod'], UHP: ['piston'], MLP: ['piston'], MLR: ['rod'], UPH: ['piston', 'rod'] };
   var VALQUA = ['UHP', 'MLP', 'MLR'], NOK = ['UPH'];
   function maker(p) { return VALQUA.indexOf(p) >= 0 ? 'バルカー' : NOK.indexOf(p) >= 0 ? 'NOK' : '阪上製作所'; }
+  // 公差を数値の後ろに色付きで出す（両用は「ピストン …／ロッド …」を別々の枠にする）
+  function tolHtml(s) {
+    if (!s || s === '—') return '';
+    return s.split('／').map(function (p) { return '<span class="tol">' + esc(p) + '</span>'; }).join('');
+  }
   function setPackingFig(p) {
     var uses = FIG_PRODUCTS[p];
     if (!uses) return;
@@ -247,9 +254,9 @@
           }
           ph += '<div class="ring pk' + (idx === 0 ? ' top' : ' alt') + '" data-product="' + esc(r.Product) + '">'
             + '<div class="name">' + esc(r.Code) + '<small>' + useName[r.Use] + '</small></div><dl>'
-            + '<dt>溝内径 d</dt><dd>' + r.D1 + '</dd>'
-            + '<dt>D1</dt><dd>' + (r.DiaD1 || '—') + '</dd>'
-            + '<dt>' + ($('br').value === 'None' ? 'GA' : 'GB') + '</dt><dd>' + r.Width + '</dd>'
+            + '<dt>溝内径 d</dt><dd><b>' + r.D1 + '</b>' + tolHtml(r.TolInner) + '</dd>'
+            + '<dt>D1</dt><dd>' + (r.DiaD1 ? '<b>' + r.DiaD1 + '</b>' + tolHtml(r.TolD1) : '—') + '</dd>'
+            + '<dt>' + ($('br').value === 'None' ? 'GA' : 'GB') + '</dt><dd><b>' + r.Width + '</b>' + tolHtml(r.TolWidth) + '</dd>'
             + (r.Backup ? '<dt>バックアップ</dt><dd>' + esc(r.Backup) + '</dd>' : '')
             + '<dt>メーカー</dt><dd>' + maker(r.Product) + '</dd>'
             + '</dl></div>';

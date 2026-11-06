@@ -157,23 +157,33 @@
     'RNY': { Rod: { Inner: 'f8', Outer: '0/-0.2' }, Width: '±0.2' },
     'ⓉSGY': { Piston: { Inner: '+0.2/0', Outer: 'H9' }, Width: '±0.2' },
     'ⓉSNY': { Rod: { Inner: 'f8', Outer: '0/-0.2' }, Width: '±0.2' },
-    'SKY': { Piston: { Inner: '+0.2/0', Outer: 'H9' }, Rod: { Inner: 'f8', Outer: '0/-0.2' }, Width: '±0.2' },
-    'KY': { Piston: { Inner: 'h8', Outer: 'H9' }, Rod: { Inner: 'f8', Outer: 'H9' }, Width: '±0.2' }
+    'SKY': { Piston: { Inner: '+0.2/0', Outer: 'H9' }, Rod: { Inner: 'f8', Outer: '0/-0.2' }, Width: '±0.2', D1: '±0.2' },
+    'KY': { Piston: { Inner: 'h8', Outer: 'H9' }, Rod: { Inner: 'f8', Outer: 'H9' }, Width: '±0.2', D1: '±0.2' },
+    // バルカー（カタログ p.4・6・17）。WidthByCode：呼び番号ごとの溝幅の公差 [GA, GB]
+    'UHP': { Piston: { Inner: '+0.2/0', Outer: 'H9' }, Width: '+0.5/0', D1: '±0.2',
+      WidthByCode: { UHP40: ['+0.3/0', '+0.3/0'], UHP50: ['+0.3/0', '+0.3/0'], UHP63: ['+0.3/0', '+0.3/0'], UHP80: ['+0.3/0', '+0.3/0'], UHP90: ['+0.3/0', '+0.3/0'],
+        UHP125: ['+0.3/0', '+0.5/0'], UHP150: ['+0.3/0', '+0.5/0'] } },
+    'MLP': { Piston: { Inner: '+0.2/0', Outer: 'H9' }, Width: '+0.5/0', D1: '±0.2',
+      WidthByCode: { MLP40: ['+0.3/0', '+0.3/0'], MLP50: ['+0.3/0', '+0.3/0'], MLP63: ['+0.3/0', '+0.3/0'], MLP80: ['+0.3/0', '+0.3/0'] } },
+    'MLR': { Rod: { Inner: 'f8', Outer: '0/-0.2' }, Width: '+0.5/0' },
+    // NOK（UPH 型 E-92 ピストン、E-94 ロッド）
+    'UPH': { Piston: { Inner: 'h10', Outer: 'H9' }, Rod: { Inner: 'f8', Outer: 'H10' }, Width: '±0.2', D1: '±0.2' }
   };
   // ISO 286（JIS B 0401）[µm]：寸法区分の上限 [mm]、IT8、IT9、f の上の寸法許容差
   var FitSizeUpper = [3, 6, 10, 18, 30, 50, 80, 120, 180, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600];
   var FitIT8 = [14, 18, 22, 27, 33, 39, 46, 54, 63, 72, 81, 89, 97, 110, 125, 140, 165, 195];
   var FitIT9 = [25, 30, 36, 43, 52, 62, 74, 87, 100, 115, 130, 140, 155, 175, 200, 230, 260, 310];
+  var FitIT10 = [40, 48, 58, 70, 84, 100, 120, 140, 160, 185, 210, 230, 250, 280, 320, 360, 420, 500];
   var FitEsF = [-6, -10, -13, -16, -20, -25, -30, -36, -43, -50, -56, -62, -68, -76, -80, -86, -98, -110];
 
   function formatPackingTol(spec, size) {
     var um = function (v) { return v === 0 ? '0' : (v > 0 ? '+' : '-') + (Math.abs(v) / 1000).toFixed(3); };
-    var m = /^([Hhf])(8|9)$/.exec(spec);
+    var m = /^([Hhf])(8|9|10)$/.exec(spec);
     if (m) {
       var i = 0;
       while (i < FitSizeUpper.length && size > FitSizeUpper[i]) i++;
       if (i >= FitSizeUpper.length) return spec;
-      var it = m[2] === '8' ? FitIT8[i] : FitIT9[i], hi, lo;
+      var it = { '8': FitIT8, '9': FitIT9, '10': FitIT10 }[m[2]][i], hi, lo;
       if (m[1] === 'H') { hi = it; lo = 0; } else if (m[1] === 'h') { hi = 0; lo = -it; } else { hi = FitEsF[i]; lo = FitEsF[i] - it; }
       return spec + ' ' + um(hi) + ' / ' + um(lo);
     }
@@ -181,9 +191,11 @@
     return m ? m[1] + ' / ' + m[2] : spec;
   }
 
-  function getPackingTol(r) {
+  function getPackingTol(r, withBR) {
     var t = PackingTolerance[r.Product];
-    if (!t) return { Inner: '—', Outer: '—', Width: '—' };
+    if (!t) return { Inner: '—', Outer: '—', Width: '—', D1: '' };
+    var w = t.WidthByCode && t.WidthByCode[r.Code] ? t.WidthByCode[r.Code][withBR ? 1 : 0] : t.Width;
+    var d1 = t.D1 && r.DiaD1 !== '' ? formatPackingTol(t.D1, 0) : '';
     var inner = [], outer = [];
     ['Piston', 'Rod'].forEach(function (u) {
       if (!t[u]) return;
@@ -191,7 +203,7 @@
       inner.push(label + formatPackingTol(t[u].Inner, r.D1));
       outer.push(label + formatPackingTol(t[u].Outer, r.D2));
     });
-    return { Inner: inner.join('／'), Outer: outer.join('／'), Width: formatPackingTol(t.Width, 0) };
+    return { Inner: inner.join('／'), Outer: outer.join('／'), Width: formatPackingTol(w, 0), D1: d1 };
   }
 
   function parsePackingTable(csv) {
@@ -229,9 +241,9 @@
       if (hasInner) { e = Math.abs(gi - r.D1); if (e > PackingDiaTol + 1e-9) return; dev += e; }
       if (hasOuter) { e = Math.abs(go - r.D2); if (e > PackingDiaTol + 1e-9) return; dev += e; }
       if (hasWidth) { e = Math.abs(gw - w); if (e > PackingWidthTol + 1e-9) return; dev += e; }
-      var tol = getPackingTol(r);
+      var tol = getPackingTol(r, withBR);
       matched.push({ Product: r.Product, Use: r.Use, Code: r.Code, D1: r.D1, D2: r.D2, DiaD1: r.DiaD1, H: r.H, Width: w,
-        TolInner: tol.Inner, TolOuter: tol.Outer, TolWidth: tol.Width,
+        TolInner: tol.Inner, TolOuter: tol.Outer, TolWidth: tol.Width, TolD1: tol.D1,
         Backup: withBR ? r.Backup : '', Deviation: dev, Order: i });
     });
 
