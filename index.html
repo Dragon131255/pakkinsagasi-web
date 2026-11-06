@@ -146,9 +146,9 @@
     .catch(function () { showError('サイズ表（data/sakagami_hydraulic.csv）を読み込めませんでした。'); });
 
   // 阪上パッキンの図：寸法指示図がある製品だけ切り替える
-  // 製品ごとにある図（ピストン用・ロッド用）。UHP・MLP・MLR はバルカーのカタログの図
-  var FIG_PRODUCTS = { SKY: ['piston', 'rod'], KY: ['piston', 'rod'], UHP: ['piston'], MLP: ['piston'], MLR: ['rod'] };
-  var VALQUA = ['UHP', 'MLP', 'MLR'];
+  // 製品ごとにある図（ピストン用・ロッド用）。UHP・MLP・MLR はバルカー、UPH は NOK のカタログの図
+  var FIG_PRODUCTS = { SKY: ['piston', 'rod'], KY: ['piston', 'rod'], UHP: ['piston'], MLP: ['piston'], MLR: ['rod'], UPH: ['piston', 'rod'] };
+  var VALQUA = ['UHP', 'MLP', 'MLR'], NOK = ['UPH'];
   function setPackingFig(p) {
     var uses = FIG_PRODUCTS[p];
     if (!uses) return;
@@ -159,6 +159,7 @@
     if (!$('pkRod').hidden) $('pkImgRod').src = 'images/' + k + '-rod.png';
     $('pkSrc').innerHTML = VALQUA.indexOf(p) >= 0
       ? 'バルカー 油圧用パッキン カタログ <span class="figP"></span>シリーズ'
+      : NOK.indexOf(p) >= 0 ? 'NOK <span class="figP"></span>型 寸法表'
       : '阪上製作所 <span class="figP"></span>パッキン 製品ページ';
     [].forEach.call(document.querySelectorAll('.figP'), function (el) { el.textContent = p; });
   }
@@ -233,7 +234,7 @@
         if (pr.Candidates.length === 0) pl = pl.concat(pr.Reasons);
         else {
           pl.push(pr.Candidates.length + ' 件見つかりました（製品ごとに最大 ' + Pakkin.MaxResults + ' 件、寸法の差が小さい順）。');
-          pl.push('出典：GPY〜KY は阪上製作所の製品ページ、UHP・MLP・MLR はバルカーの油圧用パッキン カタログの寸法表。使用条件（圧力・速度・温度）は各社のカタログで確認してください。');
+          pl.push('出典：GPY〜KY は阪上製作所の製品ページ、UHP・MLP・MLR はバルカーの油圧用パッキン カタログ、UPH は NOK の UPH 型 寸法表。使用条件（圧力・速度・温度）は各社のカタログで確認してください。');
         }
         $('msg').className = ''; $('msg').textContent = pl.join('\n');
         var useName = { Piston: 'ピストン用', Rod: 'ロッド用', Both: 'ピストン・ロッド両用' };
