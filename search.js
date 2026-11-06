@@ -203,7 +203,9 @@
       inner.push(label + formatPackingTol(t[u].Inner, r.D1));
       outer.push(label + formatPackingTol(t[u].Outer, r.D2));
     });
-    return { Inner: inner.join('／'), Outer: outer.join('／'), Width: formatPackingTol(w, 0), D1: d1 };
+    // d の公差はピストン用だけを出す（両用もロッド用は出さず「ピストン」の文字も付けない。ロッド専用の製品はロッド用）
+    var innerTol = t.Piston ? formatPackingTol(t.Piston.Inner, r.D1) : inner.join('／');
+    return { Inner: innerTol, Outer: outer.join('／'), Width: formatPackingTol(w, 0), D1: d1 };
   }
 
   function parsePackingTable(csv) {
