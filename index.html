@@ -55,7 +55,7 @@
 <main>
   <form class="card" id="form" novalidate>
     <div class="row"><label for="kind">種類</label>
-      <select id="kind"><option value="oring">Oリング（JIS B 2401）</option><option value="packing">阪上パッキン（油圧）</option></select></div>
+      <select id="kind"><option value="oring">Oリング（JIS B 2401）</option><option value="packing">Uパッキン（油圧）</option></select></div>
     <div class="row"><label for="inner"><span class="dot" style="background:var(--inner)"></span>d 溝の内径 [mm]</label>
       <input id="inner" inputmode="decimal" autocomplete="off"></div>
     <div class="row"><label for="outer"><span class="dot" style="background:var(--outer)"></span>D 溝の外径 [mm]</label>
@@ -110,11 +110,15 @@
       </g>
     </svg>
     <div id="pkFig" hidden>
+      <div id="pkPiston">
       <div class="figttl"><span class="figP">SKY</span> 寸法指示図（ピストン用）</div>
       <img id="pkImgPiston" src="images/sky-piston.png" alt="寸法指示図（ピストン用）">
+      </div>
+      <div id="pkRod">
       <div class="figttl"><span class="figP">SKY</span> 寸法指示図（ロッド用）</div>
       <img id="pkImgRod" src="images/sky-rod.png" alt="寸法指示図（ロッド用）">
-      <div class="hint">出典：阪上製作所 <span class="figP">SKY</span>パッキン 製品ページ。検索結果をタップすると、その製品の図に切り替わります。</div>
+      </div>
+      <div class="hint">出典：<span id="pkSrc">阪上製作所 <span class="figP">SKY</span>パッキン 製品ページ</span>。検索結果をタップすると、その製品の図に切り替わります。</div>
     </div>
   </div>
 
@@ -142,12 +146,20 @@
     .catch(function () { showError('サイズ表（data/sakagami_hydraulic.csv）を読み込めませんでした。'); });
 
   // 阪上パッキンの図：寸法指示図がある製品だけ切り替える
-  var FIG_PRODUCTS = ['SKY', 'KY'];
+  // 製品ごとにある図（ピストン用・ロッド用）。UHP・MLP・MLR はバルカーのカタログの図
+  var FIG_PRODUCTS = { SKY: ['piston', 'rod'], KY: ['piston', 'rod'], UHP: ['piston'], MLP: ['piston'], MLR: ['rod'] };
+  var VALQUA = ['UHP', 'MLP', 'MLR'];
   function setPackingFig(p) {
-    if (FIG_PRODUCTS.indexOf(p) < 0) return;
+    var uses = FIG_PRODUCTS[p];
+    if (!uses) return;
     var k = p.toLowerCase();
-    $('pkImgPiston').src = 'images/' + k + '-piston.png';
-    $('pkImgRod').src = 'images/' + k + '-rod.png';
+    $('pkPiston').hidden = uses.indexOf('piston') < 0;
+    $('pkRod').hidden = uses.indexOf('rod') < 0;
+    if (!$('pkPiston').hidden) $('pkImgPiston').src = 'images/' + k + '-piston.png';
+    if (!$('pkRod').hidden) $('pkImgRod').src = 'images/' + k + '-rod.png';
+    $('pkSrc').innerHTML = VALQUA.indexOf(p) >= 0
+      ? 'バルカー 油圧用パッキン カタログ <span class="figP"></span>シリーズ'
+      : '阪上製作所 <span class="figP"></span>パッキン 製品ページ';
     [].forEach.call(document.querySelectorAll('.figP'), function (el) { el.textContent = p; });
   }
   $('results').addEventListener('click', function (e) {
@@ -221,7 +233,7 @@
         if (pr.Candidates.length === 0) pl = pl.concat(pr.Reasons);
         else {
           pl.push(pr.Candidates.length + ' 件見つかりました（製品ごとに最大 ' + Pakkin.MaxResults + ' 件、寸法の差が小さい順）。');
-          pl.push('出典：阪上製作所の製品ページの寸法表。使用条件（圧力・速度・温度）は阪上製作所のカタログで確認してください。');
+          pl.push('出典：GPY〜KY は阪上製作所の製品ページ、UHP・MLP・MLR はバルカーの油圧用パッキン カタログの寸法表。使用条件（圧力・速度・温度）は各社のカタログで確認してください。');
         }
         $('msg').className = ''; $('msg').textContent = pl.join('\n');
         var useName = { Piston: 'ピストン用', Rod: 'ロッド用', Both: 'ピストン・ロッド両用' };
@@ -233,9 +245,9 @@
           }
           ph += '<div class="ring pk' + (idx === 0 ? ' top' : ' alt') + '" data-product="' + esc(r.Product) + '">'
             + '<div class="name">' + esc(r.Code) + '<small>' + useName[r.Use] + '</small></div><dl>'
-            + '<dt>溝内径 d</dt><dd>' + r.D1 + '（' + esc(r.TolInner) + '）</dd>'
-            + '<dt>溝外径 D</dt><dd>' + r.D2 + '（' + esc(r.TolOuter) + '）</dd>'
-            + '<dt>溝幅</dt><dd>' + r.Width + '（' + esc(r.TolWidth) + '）</dd>'
+            + '<dt>溝内径 d</dt><dd>' + r.D1 + '</dd>'
+            + '<dt>溝外径 D</dt><dd>' + r.D2 + '</dd>'
+            + '<dt>溝幅</dt><dd>' + r.Width + '</dd>'
             + '<dt>H（高さ）</dt><dd>' + r.H + '</dd>'
             + (r.Backup ? '<dt>バックアップ</dt><dd>' + esc(r.Backup) + '</dd>' : '')
             + '<dt>寸法の差</dt><dd>' + fmt(r.Deviation) + ' mm</dd>'
